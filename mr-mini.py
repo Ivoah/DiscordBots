@@ -176,5 +176,10 @@ class MrMini(discord.Client):
                 except KeyError:
                     await self.send_message(message.channel, f'Could not find callsign "{callsign}"')
 
+    async def on_member_update(self, before, after):
+        IVOAH = '150801519975989248'
+        if after.id == IVOAH and self.roles['Freshie'] in after.roles:
+            await self.remove_roles(after, self.roles['Freshie'])
+
 mr_mini = MrMini()
 mr_mini.run(TOKEN)
