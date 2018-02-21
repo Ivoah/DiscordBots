@@ -1,7 +1,11 @@
 #!/usr/bin/env python3.6
 
+import os
+import sys
 import json
 import discord
+
+os.chdir(sys.path[0])
 
 with open('tokens.json') as f:
     TOKEN = json.load(f)['mr-mini']
