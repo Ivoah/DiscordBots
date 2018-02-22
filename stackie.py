@@ -21,8 +21,8 @@ ops = {
     '$': (1, lambda x: f'math.floor({x})'),
     #'e': None, # TODO
     '?': (1, lambda x: f'1 if ({x}) > 0 else 0'),
-    'p': (2, lambda x, y: f'noise.pnoise2(x, y)'),
-    'a': (2, lambda x, y: f'math.atan2(x, y)'),
+    'p': (2, lambda x, y: f'noise.pnoise2({x}, {y})*0.5+0.5'),
+    'a': (2, lambda x, y: f'math.atan2({x}, {y})'),
     '+': (2, lambda x, y: f'({x})+({y})'),
     '-': (2, lambda x, y: f'({x})-({y})'),
     '*': (2, lambda x, y: f'({x})*({y})'),
