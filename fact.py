@@ -1,5 +1,6 @@
 #!/usr/bin/env python3.6
 
+import io
 import json
 import random
 import asyncio
@@ -7,14 +8,16 @@ import discord
 import functools
 import collections
 
-with open('../tokens.json') as f:
+import stackie
+
+with open('tokens.json') as f:
     TOKEN = json.load(f)['fact']
 
 class FactSphere(discord.Client):
     async def play_file(self, filename):
         try:
             voice = await self.join_voice_channel(self.channels['music room'])
-            player = voice.create_ffmpeg_player(filename, after=functools.partial(asyncio.run_coroutine_threadsafe, voice.disconnect(), self.loop))
+            player = voice.create_ffmpeg_player(f'Audio/{filename}', after=functools.partial(asyncio.run_coroutine_threadsafe, voice.disconnect(), self.loop))
             player.start()
         except discord.errors.ClientException:
             pass
@@ -40,7 +43,19 @@ class FactSphere(discord.Client):
         args = message.content[len(cmd) + 1:]
         #if cmd == '!calm':
         #    await self.send_message(message.channel, f'{args} you need to calm down')
-        if cmd == '!exam':
+        if cmd == '!img':
+            if not args or args == 'help':
+                await self.send_message(message.channel, 'https://github.com/Lerc/stackie/blob/master/README.md')
+            else:
+                try:
+                    args = args.replace('`', '')
+                    img = io.BytesIO()
+                    stackie.gen_image(args).save(img, 'png')
+                    img.seek(0)
+                    await self.send_file(message.channel, img, filename=f'{args}.png')
+                except RuntimeError:
+                    await self.send_message(message.channel, '```There was an error running your code```')
+        elif cmd == '!exam':
             await self.send_message(message.channel, f'{args} don\'t you have an exam to study for?')
         elif cmd == '!dad':
             await self.play_file('ahh_dad.wav')
