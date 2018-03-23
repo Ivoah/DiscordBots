@@ -55,8 +55,8 @@ class FactSphere(discord.Client):
                     await self.send_file(message.channel, img, filename=f'{args}.png')
                 except RuntimeError:
                     await self.send_message(message.channel, '```There was an error running your code```')
-        elif cmd == '!exam':
-            await self.send_message(message.channel, f'{args} don\'t you have an exam to study for?')
+        #elif cmd == '!exam':
+        #    await self.send_message(message.channel, f'{args} don\'t you have an exam to study for?')
         elif cmd == '!dad':
             await self.play_file('ahh_dad.wav')
         elif cmd == '!soup':
