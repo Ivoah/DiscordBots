@@ -2,6 +2,7 @@
 
 import io
 import json
+import bash
 import random
 import asyncio
 import discord
@@ -63,6 +64,24 @@ class FactSphere(discord.Client):
             await self.play_file('soup.m4a')
         elif cmd == '!wine':
             await self.play_file('wine.m4a')
+        elif cmd == '!bash':
+            print(args, args.split())
+            if args == '':
+                await self.send_message(message.channel, f'```{bash.random()}```')
+            elif args.split()[0] == 'lucky':
+                results = bash.search(' '.join(args.split()[1:]))
+                if results:
+                    quote = bash.get_quote(results[0])
+                else:
+                    quote = 'No results found'
+                await self.send_message(message.channel, f'```{quote}```')
+            else:
+                try:
+                    quote = bash.get_quote(int(args))
+                    await self.send_message(message.channel, f'```{quote}```')
+                except ValueError:
+                    results = bash.search(args)
+                    await self.send_message(message.channel, f'Search results:\n```{", ".join(results) or "No results found"}```')
         elif cmd == '!fact':
             if args:
                 if args == 'list':

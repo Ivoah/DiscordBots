@@ -4,6 +4,7 @@ import json
 import asyncio
 import aiohttp
 import discord
+import datetime
 import functools
 import youtube_dl
 import collections
@@ -15,11 +16,12 @@ with open('tokens.json') as f:
     TOKEN = json.load(f)['mr-mini']
 
 class MrMini(discord.Client):
-    queue = []
-    player = None
-    repeat = False
-
     async def on_ready(self):
+        self.queue = []
+        self.player = None
+        self.repeat = False
+        self.skip_cooldown = datetime.datetime.now()
+
         print(discord.utils.oauth_url(self.user.id))
         self.roles = {r.name: r for r in list(self.servers)[0].roles}
         self.channels = {c.name: c for c in list(self.servers)[0].channels}
@@ -99,7 +101,9 @@ class MrMini(discord.Client):
                 await self.send_message(message.channel, '```Usage: !skip```')
                 return
             if self.player:
-                self.player.stop()
+                if (datetime.datetime.now() - self.skip_cooldown).seconds >= 5:
+                    self.player.stop()
+                    self.skip_cooldown = datetime.datetime.now()
             else:
                 await self.send_message(message.channel, 'Nothing is playing')
         elif cmd == '!queue':
