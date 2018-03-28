@@ -97,7 +97,7 @@ class MrMini(discord.Client):
             await voice.disconnect()
 
     async def on_message(self, message):
-        print(f'{message.name}: {message.content}')
+        print(f'{message.channel.name}: {message.content}')
         if message.author.bot or self.roles['Timeout of Shame'] in message.author.roles or len(message.content) == 0: return
         if message.channel.name == '#acropolis' and message.content.startswith('Suggestion: '):
             self.pin_message(message)
