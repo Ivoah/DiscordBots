@@ -21,10 +21,10 @@ class Playlist():
                 self.queue = pickle.load(f)
         except FileNotFoundError:
             self.queue = []
-    
+
     def __len__(self):
         return len(self.queue)
-    
+
     def __iter__(self):
         return iter(self.queue)
 
@@ -36,11 +36,11 @@ class Playlist():
         if self.queue:
             self.queue.append(self.queue.pop(0))
         self.update()
-    
+
     def add(self, song):
         self.queue.append(song)
         self.update()
-    
+
     def clear(self, a=None, b=None):
         if a is None and b is None:
             self.queue = []
@@ -52,7 +52,7 @@ class Playlist():
 
     def peek(self):
         return self.queue[0]
-    
+
     def pop(self):
         val = self.queue.pop(0)
         self.update()
@@ -78,7 +78,7 @@ class MrMini(discord.Client):
             voice = self.voice_client_in(channel.server)
         else:
             voice = await self.join_voice_channel(self.channels['music room'])
-        
+
         self.skip_cooldown = datetime.datetime.now()
 
         if self.player:
