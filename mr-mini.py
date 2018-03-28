@@ -32,7 +32,7 @@ class Playlist():
         return iter(self.queue)
 
     def update(self):
-        with open(self.filename, 'w') as f:
+        with open(self.filename, 'wb') as f:
             pickle.dump(self.queue, f)
 
     def rotate(self):
