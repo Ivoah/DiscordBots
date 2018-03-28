@@ -73,9 +73,12 @@ class MrMini(discord.Client):
         self.channels = {c.name: c for c in list(self.servers)[0].channels}
         print(f'Logged in as {self.user.name}: {self.user.id}')
 
-    async def play_song(self, message):
-        if self.is_voice_connected(message.server):
-            voice = self.voice_client_in(message.server)
+        if self.queue:
+            self.play_song(self.channels['hades'])
+
+    async def play_song(self, channel):
+        if self.is_voice_connected(channel.server):
+            voice = self.voice_client_in(channel.server)
         else:
             voice = await self.join_voice_channel(self.channels['music room'])
 
@@ -87,8 +90,8 @@ class MrMini(discord.Client):
 
         if self.queue:
             song = self.queue.peek()
-            self.player = voice.create_ffmpeg_player(song['url'], after=functools.partial(asyncio.run_coroutine_threadsafe, self.play_song(message), self.loop))
-            await self.send_message(message.channel, f'Playing "{song["title"]}" for {song["duration"]} seconds')
+            self.player = voice.create_ffmpeg_player(song['url'], after=functools.partial(asyncio.run_coroutine_threadsafe, self.play_song(channel), self.loop))
+            await self.send_message(channel, f'Playing "{song["title"]}" for {song["duration"]} seconds')
             self.player.start()
         else:
             self.player = None
@@ -115,7 +118,7 @@ class MrMini(discord.Client):
                 self.queue.add(song)
                 await self.send_message(message.channel, f'Added "{song["title"]}" to the queue')
             if self.player is None:
-                await self.play_song(message)
+                await self.play_song(self.channels['hades'])
         elif cmd == '!stop':
             if args:
                 await self.send_message(message.channel, '```Usage: !stop```')
