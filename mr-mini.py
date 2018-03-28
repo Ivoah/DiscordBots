@@ -15,9 +15,54 @@ FCC_API = 'http://data.fcc.gov/api/license-view/basicSearch/getLicenses?searchVa
 with open('tokens.json') as f:
     TOKEN = json.load(f)['mr-mini']
 
+class Playlist():
+    def __init__(self, filename):
+        self.filename = filename
+        try:
+            with open(self.filename) as f:
+                self.queue = json.load(f)
+        except FileNotFoundError:
+            self.queue = []
+    
+    def __len__(self):
+        return len(self.queue)
+    
+    def __iter__(self):
+        return iter(self.queue)
+
+    def update(self):
+        with open(self.filename, 'w') as f:
+            json.dump(self.queue, f)
+
+    def rotate(self):
+        if self.queue:
+            self.queue.append(self.queue.pop(0))
+        self.update()
+    
+    def add(self, song):
+        self.queue.append(song)
+        self.update()
+    
+    def clear(self, a=None, b=None):
+        if a is None and b is None:
+            self.queue = []
+        elif b is None:
+            del self.queue[a]
+        else:
+            del self.queue[a:b]
+        self.update()
+
+    def peek(self):
+        return self.queue[0]
+    
+    def pop(self):
+        val = self.queue.pop(0)
+        self.update()
+        return val
+
 class MrMini(discord.Client):
     async def on_ready(self):
-        self.queue = []
+        self.queue = Playlist('queue.json')
         self.player = None
         self.repeat = False
         self.skip_cooldown = datetime.datetime.now()
@@ -35,12 +80,12 @@ class MrMini(discord.Client):
 
         if self.player:
             if self.repeat:
-                self.queue.append(self.queue.pop(0))
+                self.queue.rotate()
             else:
-                self.queue.pop(0)
+                self.queue.pop()
 
         if self.queue:
-            song = self.queue[0]
+            song = self.peek()
             self.player = voice.create_ffmpeg_player(song['url'], after=functools.partial(asyncio.run_coroutine_threadsafe, self.play_song(message), self.loop))
             await self.send_message(message.channel, f'Playing "{song["title"]}" for {song["duration"]} seconds')
             self.player.start()
@@ -57,8 +102,7 @@ class MrMini(discord.Client):
             if args:
                 await self.send_message(message.channel, '```Usage: !help```')
             else:
-                with open(__file__) as f:
-                    await self.send_message(message.channel, f'You suck {message.author.mention}')
+                await self.send_message(message.channel, f'You suck {message.author.mention}')
         elif cmd == '!yt':
             if not args:
                 await self.send_message(message.channel, '```Usage: !yt <url|search term>```')
@@ -76,7 +120,7 @@ class MrMini(discord.Client):
                 await self.send_message(message.channel, '```Usage: !stop```')
                 return
             if self.player:
-                del self.queue[1:]
+                self.queue.clear(1, -1)
                 self.player.stop()
             else:
                 await self.send_message(message.channel, 'Nothing is playing')
@@ -111,7 +155,7 @@ class MrMini(discord.Client):
             if args and args[0] == 'clear':
                 if len(args) == 1:
                     if self.player:
-                        del self.queue[1:]
+                        self.queue.clear(1, -1)
                     else:
                         self.queue.clear()
                     await self.send_message(message.channel, 'Queue cleared')
@@ -119,7 +163,7 @@ class MrMini(discord.Client):
                     try:
                         n = int(args[1])
                         if 1 < n <= len(self.queue):
-                            del self.queue[n - 1]
+                            self.queue.clear(n - 1)
                         else:
                             await self.send_message(message.channel, 'Can\'t delete that item')
                     except ValueError:
