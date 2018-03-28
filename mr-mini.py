@@ -20,7 +20,7 @@ class Playlist():
     def __init__(self, filename):
         self.filename = filename
         try:
-            with open(self.filename) as f:
+            with open(self.filename, 'rb') as f:
                 self.queue = pickle.load(f)
         except FileNotFoundError:
             self.queue = []
