@@ -63,7 +63,7 @@ class Playlist():
 
 class MrMini(discord.Client):
     async def on_ready(self):
-        self.queue = Playlist('queue.json')
+        self.queue = Playlist('queue.pickle')
         self.player = None
         self.repeat = False
         self.skip_cooldown = datetime.datetime.now()
@@ -112,7 +112,7 @@ class MrMini(discord.Client):
                 song = ytdl.extract_info(args, download=False)
                 if 'entries' in song:
                     song = song['entries'][0]
-                self.queue.append(song)
+                self.queue.add(song)
                 await self.send_message(message.channel, f'Added "{song["title"]}" to the queue')
             if self.player is None:
                 await self.play_song(message)
