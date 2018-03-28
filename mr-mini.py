@@ -102,12 +102,7 @@ class MrMini(discord.Client):
         if message.author.bot or self.roles['Timeout of Shame'] in message.author.roles or len(message.content) == 0: return
         cmd = message.content.split()[0]
         args = message.content[len(cmd) + 1:]
-        if cmd == '!help':
-            if args:
-                await self.send_message(message.channel, '```Usage: !help```')
-            else:
-                await self.send_message(message.channel, f'You suck {message.author.mention}')
-        elif cmd == '!yt':
+        if cmd == '!yt':
             if not args:
                 await self.send_message(message.channel, '```Usage: !yt <url|search term>```')
                 return
