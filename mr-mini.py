@@ -98,12 +98,12 @@ class MrMini(discord.Client):
 
     async def on_message(self, message):
         print(f'#{message.channel.name}: {message.content}')
-        if message.author.bot or self.roles['Timeout of Shame'] in message.author.roles or len(message.content) == 0: return
         if message.channel.name == 'acropolis':
-            if message.content.startswith('Suggestion: '):
+            if message.content.startswith('Suggestion: ') and not message.author.bot:
                 await self.pin_message(message)
-            elif message.type == discord.MessageType.pins_add:
+            if message.type == discord.MessageType.pins_add:
                 await self.delete_message(message)
+        if message.author.bot or self.roles['Timeout of Shame'] in message.author.roles or not message.content: return
         cmd = message.content.split()[0]
         args = message.content[len(cmd) + 1:]
         if cmd == '!yt':
