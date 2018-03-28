@@ -16,7 +16,7 @@ class SDR(discord.Client):
         print(f'Logged in as {self.user.name}: {self.user.id}')
 
     async def on_message(self, message):
-        print(f'{message.channel.name}: {message.content}')
+        print(f'#{message.channel.name}: {message.content}')
         if message.author.bot or self.roles['Timeout of Shame'] in message.author.roles or len(message.content) == 0: return
         cmd = message.content.split()[0]
         args = message.content[len(cmd) + 1:]
