@@ -4,12 +4,15 @@ import io
 import json
 import bash
 import random
+import aiohttp
 import asyncio
 import discord
 import functools
 import collections
 
 import stackie
+
+FCC_API = 'http://data.fcc.gov/api/license-view/basicSearch/getLicenses?searchValue={}&pageSize=1&format=json'
 
 with open('tokens.json') as f:
     TOKEN = json.load(f)['fact']
@@ -82,6 +85,24 @@ class FactSphere(discord.Client):
                 except ValueError:
                     results = bash.search(args)
                     await self.send_message(message.channel, f'Search results:\n```{", ".join(results) or "No results found"}```')
+        elif cmd == '!callsign':
+            args = args.split()
+            if len(args) != 1:
+                await self.send_message(message.channel, '```Usage: !callsign <callsign>```')
+                return
+            callsign = args[0]
+            async with aiohttp.get(FCC_API.format(callsign)) as response:
+                json = await response.json()
+                try:
+                    license = json['Licenses']['License'][0]
+                    embed = discord.Embed(title=license['licName'], url=license['licDetailURL'])
+                    del license['licName']
+                    del license['licDetailURL']
+                    for key, value in license.items():
+                        embed.add_field(name=key, value=value)
+                    await self.send_message(message.channel, embed=embed)
+                except KeyError:
+                    await self.send_message(message.channel, f'Could not find callsign "{callsign}"')
         elif cmd == '!fact':
             if args:
                 if args == 'list':

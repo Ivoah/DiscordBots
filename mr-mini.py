@@ -3,15 +3,12 @@
 import json
 import pickle
 import asyncio
-import aiohttp
 import discord
 import datetime
 import functools
 import youtube_dl
 import collections
 from concurrent.futures import CancelledError
-
-FCC_API = 'http://data.fcc.gov/api/license-view/basicSearch/getLicenses?searchValue={}&pageSize=1&format=json'
 
 with open('tokens.json') as f:
     TOKEN = json.load(f)['mr-mini']
@@ -209,24 +206,6 @@ class MrMini(discord.Client):
                 await self.send_message(message.channel, '```Usage: !reload```')
                 return
             await self.on_load()
-        elif cmd == '!callsign':
-            args = args.split()
-            if len(args) != 1:
-                await self.send_message(message.channel, '```Usage: !callsign <callsign>```')
-                return
-            callsign = args[0]
-            async with aiohttp.get(FCC_API.format(callsign)) as response:
-                json = await response.json()
-                try:
-                    license = json['Licenses']['License'][0]
-                    embed = discord.Embed(title=license['licName'], url=license['licDetailURL'])
-                    del license['licName']
-                    del license['licDetailURL']
-                    for key, value in license.items():
-                        embed.add_field(name=key, value=value)
-                    await self.send_message(message.channel, embed=embed)
-                except KeyError:
-                    await self.send_message(message.channel, f'Could not find callsign "{callsign}"')
 
     async def on_member_update(self, before, after):
         IVOAH = '150801519975989248'
