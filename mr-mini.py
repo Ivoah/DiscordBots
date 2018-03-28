@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.6
 
 import json
+import pickle
 import asyncio
 import aiohttp
 import discord
@@ -20,7 +21,7 @@ class Playlist():
         self.filename = filename
         try:
             with open(self.filename) as f:
-                self.queue = json.load(f)
+                self.queue = pickle.load(f)
         except FileNotFoundError:
             self.queue = []
     
@@ -32,7 +33,7 @@ class Playlist():
 
     def update(self):
         with open(self.filename, 'w') as f:
-            json.dump(self.queue, f)
+            pickle.dump(self.queue, f)
 
     def rotate(self):
         if self.queue:
