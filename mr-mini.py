@@ -78,6 +78,8 @@ class MrMini(discord.Client):
             voice = self.voice_client_in(channel.server)
         else:
             voice = await self.join_voice_channel(self.channels['music room'])
+        
+        self.skip_cooldown = datetime.datetime.now()
 
         if self.player:
             if self.repeat:
