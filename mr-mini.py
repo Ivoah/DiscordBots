@@ -101,7 +101,7 @@ class MrMini(discord.Client):
         if message.channel.name == 'acropolis':
             if message.content.startswith('Suggestion: ') and not message.author.bot:
                 await self.pin_message(message)
-            if message.type == discord.MessageType.pins_add:
+            elif message.type == discord.MessageType.pins_add:
                 await self.delete_message(message)
         if message.author.bot or self.roles['Timeout of Shame'] in message.author.roles or not message.content: return
         cmd = message.content.split()[0]
