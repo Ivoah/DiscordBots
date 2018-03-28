@@ -74,7 +74,7 @@ class MrMini(discord.Client):
         print(f'Logged in as {self.user.name}: {self.user.id}')
 
         if self.queue:
-            self.play_song(self.channels['hades'])
+            await self.play_song(self.channels['hades'])
 
     async def play_song(self, channel):
         if self.is_voice_connected(channel.server):
