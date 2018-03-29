@@ -110,7 +110,7 @@ class MrMini(discord.Client):
             if not args:
                 await self.send_message(message.channel, '```Usage: !yt <url|search term>```')
                 return
-            with youtube_dl.YoutubeDL({'default_search': 'auto', 'format': 'webm[abr>0]/bestaudio/best'}) as ytdl:
+            with youtube_dl.YoutubeDL({'default_search': 'ytsearch', 'format': 'webm[abr>0]/bestaudio/best'}) as ytdl:
                 song = ytdl.extract_info(args, download=False)
                 if 'entries' in song:
                     song = song['entries'][0]
