@@ -47,7 +47,9 @@ class FactSphere(discord.Client):
         args = message.content[len(cmd) + 1:]
         #if cmd == '!calm':
         #    await self.send_message(message.channel, f'{args} you need to calm down')
-        if cmd == '!img':
+        if message.content == 'git gud':
+            await self.send_message(message.channel, '```git: \'gud\' is not a git command. See \'git --help\'.\n\nThe most similar command is\n    gui```')
+        elif cmd == '!img':
             if not args or args == 'help':
                 await self.send_message(message.channel, 'https://github.com/Lerc/stackie/blob/master/README.md')
             else:
