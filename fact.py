@@ -128,7 +128,8 @@ class FactSphere(discord.Client):
                     if not found: fact = 'Fact not found.'
             else:
                 fact = random.choice(list(self.facts))
-            await self.play_file(self.facts[fact])
+            if self.facts[fact] is not None:
+                await self.play_file(self.facts[fact])
             await self.send_message(message.channel, fact)
 
 sphere = FactSphere()
