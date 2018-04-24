@@ -213,8 +213,10 @@ class MrMini(discord.Client):
         IVOAH = '150801519975989248'
         if after.id == IVOAH and self.roles['Freshie'] in after.roles:
             await self.remove_roles(after, self.roles['Freshie'])
-        elif after.id == self.user.id and self.roles['Underage Waifu'] in after.roles:
-            await self.remove_roles(after, self.roles['Underage Waifu'])
+        elif after.id == self.user.id:
+            for role in after.roles:
+                if 'waifu' in role.name.lower():
+                    await self.remove_roles(after, role)
 
 mr_mini = MrMini()
 mr_mini.run(TOKEN)
