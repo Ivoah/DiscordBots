@@ -110,7 +110,8 @@ class FactSphere(discord.Client):
                     await self.send_message(message.channel, f'Could not find callsign "{callsign}"')
         elif cmd == '!calc':
             async with aiohttp.get(WA_API, params={'appid': WA_APPID, 'input': args}) as response:
-                await self.send_message(message.channel, f'```{await response.text()}```')
+                answer = await response.text()
+                await self.send_message(message.channel, f'```{answer}```')
         elif cmd == '!fact':
             if args:
                 if args == 'list':
