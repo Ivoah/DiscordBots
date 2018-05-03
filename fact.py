@@ -13,9 +13,12 @@ import collections
 import stackie
 
 FCC_API = 'http://data.fcc.gov/api/license-view/basicSearch/getLicenses?searchValue={}&pageSize=1&format=json'
+WA_API = 'https://api.wolframalpha.com/v2/result'
 
 with open('tokens.json') as f:
-    TOKEN = json.load(f)['fact']
+    f = json.load(f)
+    TOKEN = f['fact']
+    WA_APPID = f['wolfram_alpha']
 
 class FactSphere(discord.Client):
     async def play_file(self, filename):
@@ -105,6 +108,9 @@ class FactSphere(discord.Client):
                     await self.send_message(message.channel, embed=embed)
                 except KeyError:
                     await self.send_message(message.channel, f'Could not find callsign "{callsign}"')
+        elif cmd == '!calc':
+            async with aiohttp.get(WA_API, params={'appid': WA_APPID, 'input': args}) as response:
+                await self.send_message(message.channel, response.text())
         elif cmd == '!fact':
             if args:
                 if args == 'list':
