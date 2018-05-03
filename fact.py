@@ -108,7 +108,7 @@ class FactSphere(discord.Client):
                     await self.send_message(message.channel, embed=embed)
                 except KeyError:
                     await self.send_message(message.channel, f'Could not find callsign "{callsign}"')
-        elif cmd == '!calc':
+        elif cmd == '!wa':
             async with aiohttp.get(WA_API, params={'appid': WA_APPID, 'input': args}) as response:
                 answer = await response.text()
                 await self.send_message(message.channel, f'```{answer}```')
