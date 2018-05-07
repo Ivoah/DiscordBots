@@ -218,7 +218,7 @@ class MrMini(discord.Client):
             bot_uptime = datetime.datetime.now() - self.start_time
             try:
                 with open('/proc/uptime', 'r') as f:
-                    system_uptime = str(timedelta(seconds = float(f.read().split()[0])))
+                    system_uptime = str(datetime.timedelta(seconds = float(f.read().split()[0])))
             except FileNotFoundError:
                 system_uptime = None
 
