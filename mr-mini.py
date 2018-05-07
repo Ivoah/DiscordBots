@@ -65,6 +65,7 @@ class Playlist():
 
 class MrMini(discord.Client):
     async def on_ready(self):
+        self.start_time = datetime.datetime.now()
         self.queue = Playlist('queue.pickle')
         self.player = None
         self.repeat = False
@@ -213,6 +214,18 @@ class MrMini(discord.Client):
                 await self.send_message(message.channel, '```Usage: !reload```')
                 return
             await self.on_load()
+        elif cmd == '!uptime':
+            bot_uptime = datetime.datetime.now() - self.start_time
+            try:
+                with open('/proc/uptime', 'r') as f:
+                    system_uptime = str(timedelta(seconds = float(f.read().split()[0])))
+            except FileNotFoundError:
+                system_uptime = None
+
+            if system_uptime:
+                await self.send_message(message.channel, f'```Bot: {bot_uptime}\nSystem: {system_uptime}```')
+            else:
+                await self.send_message(message.channel, f'```Bot: {bot_uptime}```')
 
     async def on_member_update(self, before, after):
         IVOAH = '150801519975989248'
