@@ -13,6 +13,11 @@ from concurrent.futures import CancelledError
 with open('tokens.json') as f:
     TOKEN = json.load(f)['mr-mini']
 
+def ftime(seconds):
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return f'{h}:{m:02d}:{s:02d}' if h else f'{m}:{s:02d}'
+
 class Playlist():
     def __init__(self, filename):
         self.filename = filename
@@ -90,7 +95,7 @@ class MrMini(discord.Client):
         if self.queue:
             song = self.queue.peek()
             self.player = voice.create_ffmpeg_player(song['url'], after=functools.partial(asyncio.run_coroutine_threadsafe, self.play_song(channel), self.loop))
-            await self.send_message(channel, f'Playing "{song["title"]}" for {song["duration"]} seconds')
+            await self.send_message(channel, f'Playing "{song["title"]}" ({ftime(song["duration"])})')
             self.player.start()
         else:
             self.player = None
@@ -115,7 +120,7 @@ class MrMini(discord.Client):
                 if 'entries' in song:
                     song = song['entries'][0]
                 self.queue.add(song)
-                await self.send_message(message.channel, f'Added "{song["title"]}" to the queue')
+                await self.send_message(message.channel, f'Added "{song["title"]}" to the queue ({ftime(song["duration"])})')
             if self.player is None:
                 await self.play_song(self.channels['hades'])
         elif cmd == '!stop':
@@ -175,7 +180,7 @@ class MrMini(discord.Client):
                     await self.send_message(message.channel, '```Usage: !queue [clear [n]]```')
             elif not args:
                 if self.queue:
-                    await self.send_message(message.channel, '\n'.join(f'{i + 1}: {s["title"]}' for i, s in enumerate(self.queue)))
+                    await self.send_message(message.channel, '\n'.join(f'{i + 1}: {s["title"]} ({ftime(s["duration"])})' for i, s in enumerate(self.queue)) + f'\n\n{ftime(sum(s["duration"] for s in self.queue))} total')
                 else:
                     await self.send_message(message.channel, 'The queue is empty')
             else:
