@@ -215,6 +215,10 @@ class MrMini(discord.Client):
                 return
             await self.on_load()
         elif cmd == '!uptime':
+            if args:
+                await self.send_message(message.channel, '```Usage: !uptime```')
+                return
+
             bot_uptime = datetime.datetime.now() - self.start_time
             try:
                 with open('/proc/uptime', 'r') as f:
