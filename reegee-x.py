@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.6
+
 import re
 import json
 import discord
