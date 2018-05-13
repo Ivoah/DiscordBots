@@ -1,23 +1,8 @@
-from aiotg import Bot, Chat
-import asyncio
-import os
-import regex as re
-from collections import defaultdict, deque
-from pprint import pprint
+import re
+import json
+import discord
 
-bot = Bot(api_token=os.environ['API_KEY'])
-
-last_msgs = defaultdict(lambda: deque(maxlen=10))
-
-
-def find_original(message):
-    if 'text' in message:
-        return message['text']
-    elif 'caption' in message:
-        return message['caption']
-
-    return None
-
+'''
 async def doit(chat, match):
     fr = match.group(1)
     to = match.group(2)
@@ -82,15 +67,45 @@ async def test(chat, match):
 @bot.handle('photo')
 async def msg(chat, match):
     last_msgs[chat.id].append(chat.message)
+'''
 
+with open('tokens.json') as f:
+    TOKEN = json.load(f)['reegee-x']
 
-async def main():
-    await bot.loop()
+class Reegee(discord.Client):
+    async def on_ready(self):
+        self.roles = {r.name: r for r in list(self.servers)[0].roles}
+        self.channels = {c.name: c for c in list(self.servers)[0].channels}
+        self.re = re.compile('^`s/((?:\\/|[^/])+?)/((?:\\/|[^/])*?)(?:/(.*))?`')
+        print(f'Logged in as {self.user.name}: {self.user.id}')
 
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(main())
-    except KeyboardInterrupt:
-        bot.stop()
+    async def on_message(self, message):
+        print(f'#{message.channel.name}: {message.content}')
+        if message.author.bot or self.roles['Timeout of Shame'] in message.author.roles or not message.content: return
+        match = self.re.match(message.content)
+        if match:
+            _from = match[1]
+            to = match[2].replace(r'\/', '/')
+            flags = match[3] or ''
 
+            count = 1
+            re_flags = 0
+            for flag in flags:
+                if flag == 'i':
+                    re_flags |= re.IGNORECASE
+                elif flag == 'g':
+                    count = 0
+                else:
+                    await self.send_message(message.channel, f'Unrecognized flag: {flag}')
+                    return
+
+            async for msg in self.logs_from(message.channel, limit=25):
+                try:
+                    if msg.content != message.content and re.search(_from, msg.content):
+                        await self.send_message(message.channel, re.sub(_from, to, msg.content, count=count))
+                        return
+                except Exception as e:
+                    await self.send_message(message.channel, f'u dun goofed m8: {e}')
+
+reegee = Reegee()
+reegee.run(TOKEN)
