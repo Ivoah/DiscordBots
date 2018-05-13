@@ -39,7 +39,7 @@ class Reegee(discord.Client):
             async for msg in self.logs_from(message.channel, limit=25):
                 try:
                     if msg.content != message.content and re.search(_from, msg.content):
-                        await self.send_message(message.channel, re.sub(_from, to, msg.content, count=count))
+                        await self.send_message(message.channel, re.sub(_from, to, msg.content, count=count, flags=re_flags))
                         return
                 except Exception as e:
                     await self.send_message(message.channel, f'u dun goofed m8: {e}')
