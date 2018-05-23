@@ -86,7 +86,8 @@ class FactSphere(discord.Client):
         print(f'Logged in as {self.user.name}: {self.user.id}')
 
     async def on_message(self, message):
-        Log.log(message)
+        with db:
+            Log.log(message)
 
 sphere = FactSphere()
 sphere.run(TOKEN)
