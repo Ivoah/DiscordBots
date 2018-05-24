@@ -74,7 +74,7 @@ class FactSphere(discord.Client):
                     pass
 
                 msg = 0
-                async for message in self.logs_from(channel, limit=25):
+                async for message in self.logs_from(channel, limit=100):
                     msg += 1
                     print(f'\r#{channel.name}: {msg}', end='')
                     try:
