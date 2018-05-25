@@ -43,7 +43,7 @@ class Channel(peewee.Model):
     name = peewee.TextField()
 
     class Meta:
-        table_name = 'logs_channels'
+        table_name = 'channels'
         database = db
 
 class Member(peewee.Model):
@@ -53,7 +53,7 @@ class Member(peewee.Model):
     avatar = peewee.TextField()
 
     class Meta:
-        table_name = 'logs_members'
+        table_name = 'members'
         database = db
 
 class FactSphere(discord.Client):
