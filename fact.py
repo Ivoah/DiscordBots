@@ -72,6 +72,8 @@ class FactSphere(discord.Client):
             await self.play_file('soup.m4a')
         elif cmd == '!wine':
             await self.play_file('wine.m4a')
+        elif cmd == '!':
+            await self.play_file('chime.m4a')
         elif cmd == '!bash':
             print(args, args.split())
             if args == '':
