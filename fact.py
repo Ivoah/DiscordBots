@@ -20,9 +20,6 @@ with open('tokens.json') as f:
     TOKEN = f['fact']
     WA_APPID = f['wolfram_alpha']
 
-with open('xkcd.json') as f:
-    comics = json.load(f)
-
 class FactSphere(discord.Client):
     async def play_file(self, filename):
         try:
@@ -36,8 +33,12 @@ class FactSphere(discord.Client):
         print(discord.utils.oauth_url(self.user.id))
         self.roles = {r.name: r for r in list(self.servers)[0].roles}
         self.channels = {c.name: c for c in list(self.servers)[0].channels}
+
         with open('facts.json') as f:
             self.facts = json.load(f)
+
+        with open('xkcd.json') as f:
+            self.comics = json.load(f)
 
         self.chain = collections.defaultdict(lambda: [])
 
@@ -120,11 +121,11 @@ class FactSphere(discord.Client):
         elif cmd == '!xkcd':
             if args == 'update':
                 with open('xkcd.json') as f:
-                    comics = json.load(f)
-            elif args in comics.keys():
+                    self. = json.load(f)
+            elif args in self.comics.keys():
                 await self.send_message(message.channel, f'https://xkcd.com/{args}/')
             else:
-                for comic in comics.values():
+                for comic in self.comics.values():
                     for word in sender.text.lower().split():
                         if word not in ' '.join([str(v) for v in comic.values()]).lower():
                             break
