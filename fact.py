@@ -138,7 +138,7 @@ class FactSphere(discord.Client):
                 if len(results) == 1:
                     await self.send_message(message.channel, f'https://xkcd.com/{results[0]["num"]}/')
                 else:
-                    await self.send_message(message.channel, f'''```Results:\n\n{"\n".join(f'{comic["num"]}: {comic["title"]}' for comic in results)}```''')
+                    await self.send_message(message.channel, f'''```Results:\n\n{chr(10).join(f'{comic["num"]}: {comic["title"]}' for comic in results)}```''')
         elif cmd == '!fact':
             if args:
                 if args == 'list':
