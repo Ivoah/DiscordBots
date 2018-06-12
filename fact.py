@@ -114,6 +114,19 @@ class FactSphere(discord.Client):
             async with aiohttp.get(WA_API, params={'appid': WA_APPID, 'input': args}) as response:
                 answer = await response.text()
                 await self.send_message(message.channel, f'```{answer}```')
+        elif cmd == '!xkcd':
+            if args == 'update':
+                msg = await self.send_message(message.channel, 'Updating xkcd database')
+                async with aiohttp.ClientSession() as session:
+                    async with session.get('http://xkcd.com/info.0.json') as response:
+                        latest = (await response.json())['num']
+
+                    for i in range(1, latest + 1):
+                        if i == 404: continue
+                        print(f'\rUpdating xkcd database: {i}/{latest} ({i/latest*100:.2f}%)', end='')
+                        async with session.get(f'http://xkcd.com/{i}/info.0.json') as response:
+                            await response.json()
+                    print()
         elif cmd == '!fact':
             if args:
                 if args == 'list':
