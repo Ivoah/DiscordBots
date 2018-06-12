@@ -123,10 +123,10 @@ class FactSphere(discord.Client):
 
                     for i in range(1, latest + 1):
                         if i == 404: continue
-                        print(f'\rUpdating xkcd database: {i}/{latest} ({i/latest*100:.2f}%)', end='')
+                        if i%100 == 0: await self.edit_message(msg, f'Updating xkcd database: {i}/{latest} ({i/latest*100:.2f}%)')
                         async with session.get(f'http://xkcd.com/{i}/info.0.json') as response:
                             await response.json()
-                    print()
+                        self.edit_message(msg, f'Updating xkcd database: {i}/{latest} ({i/latest*100:.2f}%)')
         elif cmd == '!fact':
             if args:
                 if args == 'list':
