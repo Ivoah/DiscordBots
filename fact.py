@@ -128,6 +128,9 @@ class FactSphere(discord.Client):
                 results = []
                 await self.send_typing(message.channel)
                 for comic in self.comics.values():
+                    if args.lower() == comic['title'].lower():
+                        await self.send_message(message.channel, f'https://xkcd.com/{comic["num"]}/')
+                        return
                     for word in args.lower().split():
                         if word not in ' '.join([str(v) for v in comic.values()]).lower():
                             break
