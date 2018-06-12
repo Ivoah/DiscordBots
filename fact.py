@@ -121,7 +121,7 @@ class FactSphere(discord.Client):
         elif cmd == '!xkcd':
             if args == 'update':
                 with open('xkcd.json') as f:
-                    self. = json.load(f)
+                    self.comics = json.load(f)
             elif args in self.comics.keys():
                 await self.send_message(message.channel, f'https://xkcd.com/{args}/')
             else:
