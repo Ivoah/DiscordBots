@@ -125,12 +125,18 @@ class FactSphere(discord.Client):
             elif args in self.comics.keys():
                 await self.send_message(message.channel, f'https://xkcd.com/{args}/')
             else:
+                n = 0
                 for comic in self.comics.values():
                     for word in args.lower().split():
                         if word not in ' '.join([str(v) for v in comic.values()]).lower():
                             break
                     else:
+                        n += 1
                         await self.send_message(message.channel, f'{comic["num"]}: {comic["title"]}')
+                        await self.send_typing(message.channel)
+                        if n == 25:
+                            break
+                await self.send_message(message.channel, 'Done')
         elif cmd == '!fact':
             if args:
                 if args == 'list':
