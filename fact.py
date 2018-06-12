@@ -116,16 +116,7 @@ class FactSphere(discord.Client):
                 await self.send_message(message.channel, f'```{answer}```')
         elif cmd == '!xkcd':
             if args == 'update':
-                msg = await self.send_message(message.channel, 'Updating xkcd database')
-                async with aiohttp.ClientSession() as session:
-                    async with session.get('http://xkcd.com/info.0.json') as response:
-                        latest = (await response.json())['num']
-
-                    for i in range(1, latest + 1):
-                        if i == 404: continue
-                        if i%100 == 0 or i == latest: await self.edit_message(msg, f'Updating xkcd database: {i}/{latest} ({i/latest*100:.2f}%)')
-                        async with session.get(f'http://xkcd.com/{i}/info.0.json') as response:
-                            await response.json()
+                pass
         elif cmd == '!fact':
             if args:
                 if args == 'list':
