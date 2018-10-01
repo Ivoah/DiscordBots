@@ -2,6 +2,7 @@
 
 import json
 import pickle
+import peewee
 import asyncio
 import discord
 import datetime
@@ -11,7 +12,9 @@ import collections
 from concurrent.futures import CancelledError
 
 with open('tokens.json') as f:
-    TOKEN = json.load(f)['mr-mini']
+    f = json.load(f)
+    TOKEN = f['mr-mini']
+    DB_PW = f['mysql']
 
 def ftime(seconds):
     m, s = divmod(seconds, 60)
@@ -63,6 +66,16 @@ class Playlist():
         self.update()
         return val
 
+db = peewee.MySQLDatabase('discord', host='ivoah.net', user='discord', password=DB_PW)
+
+class Entry(peewee.Model):
+    song = peewee.TextField()
+    date = peewee.DateTimeField()
+
+    class Meta:
+        table_name = 'music_history'
+        database = db
+
 class MrMini(discord.Client):
     async def on_ready(self):
         self.start_time = datetime.datetime.now()
@@ -97,6 +110,7 @@ class MrMini(discord.Client):
             song = self.queue.peek()
             self.player = voice.create_ffmpeg_player(song['url'], after=functools.partial(asyncio.run_coroutine_threadsafe, self.play_song(channel), self.loop))
             await self.send_message(channel, f'Playing "{song["title"]}" ({ftime(song["duration"])})')
+            Entry.create(song=json.dumps(song), date=datetime.datetime.now())
             self.player.start()
         else:
             self.player = None
