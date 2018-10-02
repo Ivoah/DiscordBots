@@ -110,7 +110,8 @@ class MrMini(discord.Client):
             song = self.queue.peek()
             self.player = voice.create_ffmpeg_player(song['url'], after=functools.partial(asyncio.run_coroutine_threadsafe, self.play_song(channel), self.loop))
             await self.send_message(channel, f'Playing "{song["title"]}" ({ftime(song["duration"])})')
-            Entry.create(song=json.dumps(song), date=datetime.datetime.now())
+            with db:
+                Entry.create(song=json.dumps(song), date=datetime.datetime.now())
             self.player.start()
         else:
             self.player = None
