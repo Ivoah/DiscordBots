@@ -116,6 +116,7 @@ class MrMini(discord.Client):
             self.player.start()
         else:
             self.player = None
+            await self.change_presence()
             await voice.disconnect()
 
     async def on_message(self, message):
