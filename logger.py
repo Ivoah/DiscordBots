@@ -21,7 +21,7 @@ class Log(peewee.Model):
     channel = peewee.BigIntegerField()
     author = peewee.BigIntegerField()
     content = peewee.TextField()
-    attachments = peewee.IntegerField()
+    attachments = peewee.TextField()
 
     class Meta:
         table_name = 'logs'
