@@ -35,7 +35,7 @@ class Log(peewee.Model):
             channel=message.channel.id,
             author=message.author.id,
             content=message.content,
-            attachments=len(message.attachments)
+            attachments=json.dumps(message.attachments)
         )
 
 class Channel(peewee.Model):
