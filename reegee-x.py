@@ -43,6 +43,7 @@ class Reegee(discord.Client):
                         return
                 except Exception as e:
                     await self.send_message(message.channel, f'u dun goofed m8: {e}')
+                    return
 
 reegee = Reegee()
 reegee.run(TOKEN)
