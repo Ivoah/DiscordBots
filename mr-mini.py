@@ -254,7 +254,7 @@ class MrMini(discord.Client):
             await self.remove_roles(after, self.roles['Freshie'])
         elif after.id == self.user.id:
             for role in after.roles:
-                if 'waifu' in role.name.lower():
+                if 'aifu' in role.name.lower():
                     await self.remove_roles(after, role)
 
 mr_mini = MrMini()
