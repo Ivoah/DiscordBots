@@ -63,4 +63,4 @@ def gen_image(s):
     return img
 
 if __name__ == '__main__':
-    gen_img(input()).show()
+    gen_image(input()).show()
