@@ -250,9 +250,7 @@ class MrMini(discord.Client):
 
     async def on_member_update(self, before, after):
         IVOAH = '150801519975989248'
-        if after.id == IVOAH and self.roles['Freshie'] in after.roles:
-            await self.remove_roles(after, self.roles['Freshie'])
-        elif after.id == self.user.id:
+        if after.id == self.user.id:
             for role in after.roles:
                 if 'aifu' in role.name.lower():
                     await self.remove_roles(after, role)
