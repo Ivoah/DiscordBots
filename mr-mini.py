@@ -247,6 +247,14 @@ class MrMini(discord.Client):
                 await self.send_message(message.channel, f'```Bot: {bot_uptime}\nSystem: {system_uptime}```')
             else:
                 await self.send_message(message.channel, f'```Bot: {bot_uptime}```')
+        elif cmd == '!vidya':
+            if args:
+                await self.send_message(message.channel, '```Usage: !vidya```')
+            
+            if self.roles['Vidya Gaems'] in message.author.roles:
+                await self.remove_roles(message.author, self.roles['Vidya Gaems'])
+            else:
+                await self.add_roles(message.author, self.roles['Vidya Gaems'])
 
     async def on_member_update(self, before, after):
         IVOAH = '150801519975989248'
