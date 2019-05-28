@@ -253,8 +253,10 @@ class MrMini(discord.Client):
             
             if self.roles['Vidya Gaems'] in message.author.roles:
                 await self.remove_roles(message.author, self.roles['Vidya Gaems'])
+                await self.send_message(message.channel, f'Added {self.roles["Vidya Gaems"].mention} to {message.author.mention}')
             else:
                 await self.add_roles(message.author, self.roles['Vidya Gaems'])
+                await self.send_message(message.channel, f'Removed {self.roles["Vidya Gaems"].mention} from {message.author.mention}')
 
     async def on_member_update(self, before, after):
         IVOAH = '150801519975989248'
