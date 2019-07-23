@@ -95,7 +95,11 @@ class FactSphere(discord.Client):
                     await self.send_message(message.channel, f'```{quote}```')
                 except ValueError:
                     results = bash.search(args)
-                    await self.send_message(message.channel, f'Search results:\n```{", ".join(results) or "No results found"}```')
+                    if len(results) == 1:
+                        quote = bash.get_quote(int(results[0]))
+                        await self.send_message(message.channel, f'```{quote}```')
+                    else
+                        await self.send_message(message.channel, f'Search results:\n```{", ".join(results) or "No results found"}```')
         elif cmd == '!callsign':
             args = args.split()
             if len(args) != 1:
