@@ -98,7 +98,7 @@ class FactSphere(discord.Client):
                     if len(results) == 1:
                         quote = bash.get_quote(int(results[0]))
                         await self.send_message(message.channel, f'```{quote}```')
-                    else
+                    else:
                         await self.send_message(message.channel, f'Search results:\n```{", ".join(results) or "No results found"}```')
         elif cmd == '!callsign':
             args = args.split()
