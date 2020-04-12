@@ -28,14 +28,22 @@ class Log(peewee.Model):
         database = db
 
     @classmethod
-    def log(self, message):
-        self.create(
+    def log(cls, message):
+        cls.create(
             id=message.id,
-            timestamp=message.timestamp,
+            timestamp=message.created_at,
             channel=message.channel.id,
             author=message.author.id,
             content=message.content,
-            attachments=json.dumps(message.attachments)
+            attachments=json.dumps(list(map(lambda attachment: {
+                'id': str(attachment.id),
+                'size': attachment.size,
+                'width': attachment.width,
+                'height': attachment.height,
+                'filename': attachment.filename,
+                'url': attachment.url,
+                'proxy_url': attachment.proxy_url
+            }, message.attachments)))
         )
 
 class Channel(peewee.Model):
@@ -59,7 +67,7 @@ class Member(peewee.Model):
 class FactSphere(discord.Client):
     async def on_ready(self):
         with db:
-            ΣωΣ = list(self.servers)[0]
+            ΣωΣ = list(self.guilds)[0]
             for member in ΣωΣ.members:
                 try:
                     Member.create(id=member.id, name=member.name, nick=member.nick, avatar=member.avatar_url or member.default_avatar_url)
@@ -74,7 +82,7 @@ class FactSphere(discord.Client):
                     pass
 
                 msg = 0
-                async for message in self.logs_from(channel, limit=100):
+                async for message in channel.history(limit=100):
                     msg += 1
                     print(f'\r#{channel.name}: {msg}', end='')
                     try:
