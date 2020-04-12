@@ -12,10 +12,10 @@ with open('tokens.json') as f:
 
 class MrMini(discord.Client):
     async def on_ready(self):
-        self.roles = {r.name: r for r in list(self.servers)[0].roles}
+        self.roles = {r.name: r for r in list(self.guilds)[0].roles}
 
         for member in list(self.servers)[0].members:
-            await self.remove_roles(member, self.roles['Timeout of Shame'], self.roles['Kinda timeout but not really'])
+            await member.remove_roles(self.roles['Timeout of Shame'], self.roles['Kinda timeout but not really'])
 
         await self.logout()
 
