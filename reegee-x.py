@@ -11,8 +11,8 @@ with open('tokens.json') as f:
 
 class Reegee(discord.Client):
     async def on_ready(self):
-        self.roles = {r.name: r for r in list(self.servers)[0].roles}
-        self.channels = {c.name: c for c in list(self.servers)[0].channels}
+        self.roles = {r.name: r for r in list(self.guilds)[0].roles}
+        self.channels = {c.name: c for c in list(self.guilds)[0].channels}
         self.re = re.compile('^`s/((?:\\/|[^/])+?)/((?:\\/|[^/])*?)(?:/(.*))?`')
         print(f'Logged in as {self.user.name}: {self.user.id}')
 
@@ -33,16 +33,16 @@ class Reegee(discord.Client):
                 elif flag == 'g':
                     count = 0
                 else:
-                    await self.send_message(message.channel, f'Unrecognized flag: {flag}')
+                    await message.channel.send(f'Unrecognized flag: {flag}')
                     return
 
-            async for msg in self.logs_from(message.channel, limit=25):
+            async for msg in message.channel.history(limit=25):
                 try:
                     if msg.content != message.content and re.search(_from, msg.content):
-                        await self.send_message(message.channel, re.sub(_from, to, msg.content, count=count, flags=re_flags))
+                        await message.channel.send(re.sub(_from, to, msg.content, count=count, flags=re_flags))
                         return
                 except Exception as e:
-                    await self.send_message(message.channel, f'u dun goofed m8: {e}')
+                    await message.channel.send(f'u dun goofed m8: {e}')
                     return
 
 reegee = Reegee()
