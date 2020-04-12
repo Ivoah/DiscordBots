@@ -7,7 +7,6 @@ import random
 import aiohttp
 import asyncio
 import discord
-import functools
 import collections
 
 import stackie
@@ -23,16 +22,15 @@ with open('tokens.json') as f:
 class FactSphere(discord.Client):
     async def play_file(self, filename):
         try:
-            voice = await self.join_voice_channel(self.channels['music room'])
-            player = voice.create_ffmpeg_player(f'Audio/{filename}', after=functools.partial(asyncio.run_coroutine_threadsafe, voice.disconnect(), self.loop))
-            player.start()
+            voice = await self.channels['music room'].connect()
+            voice.play(discord.FFmpegPCMAudio(f'Audio/{filename}'), after=lambda e: asyncio.run_coroutine_threadsafe(voice.disconnect(), self.loop))
         except discord.errors.ClientException:
             pass
 
     async def on_ready(self):
         print(discord.utils.oauth_url(self.user.id))
-        self.roles = {r.name: r for r in list(self.servers)[0].roles}
-        self.channels = {c.name: c for c in list(self.servers)[0].channels}
+        self.roles = {r.name: r for r in list(self.guilds)[0].roles}
+        self.channels = {c.name: c for c in list(self.guilds)[0].channels}
 
         with open('facts.json') as f:
             self.facts = json.load(f)
@@ -53,12 +51,12 @@ class FactSphere(discord.Client):
         cmd = message.content.split()[0]
         args = message.content[len(cmd) + 1:]
         #if cmd == '!calm':
-        #    await self.send_message(message.channel, f'{args} you need to calm down')
+        #    await message.channel.send(f'{args} you need to calm down')
         if message.content == 'git gud':
-            await self.send_message(message.channel, '```git: \'gud\' is not a git command. See \'git --help\'.\n\nThe most similar command is\n    gui```')
+            await message.channel.send('```git: \'gud\' is not a git command. See \'git --help\'.\n\nThe most similar command is\n    gui```')
         elif cmd == '!img':
             if not args or args == 'help':
-                await self.send_message(message.channel, 'https://github.com/Lerc/stackie/blob/master/README.md')
+                await message.channel.send('https://github.com/Lerc/stackie/blob/master/README.md')
             else:
                 try:
                     args = args.replace('`', '')
@@ -67,9 +65,9 @@ class FactSphere(discord.Client):
                     img.seek(0)
                     await self.send_file(message.channel, img, filename=f'{args}.png')
                 except RuntimeError:
-                    await self.send_message(message.channel, '```There was an error running your code```')
+                    await message.channel.send('```There was an error running your code```')
         #elif cmd == '!exam':
-        #    await self.send_message(message.channel, f'{args} don\'t you have an exam to study for?')
+        #    await message.channel.send(f'{args} don\'t you have an exam to study for?')
         elif cmd == '!dad':
             await self.play_file('ahh_dad.wav')
         elif cmd == '!soup':
@@ -81,29 +79,29 @@ class FactSphere(discord.Client):
         elif cmd == '!bash':
             print(args, args.split())
             if args == '':
-                await self.send_message(message.channel, f'```{bash.random()}```')
+                await message.channel.send(f'```{bash.random()}```')
             elif args.split()[0] == 'lucky':
                 results = bash.search(' '.join(args.split()[1:]))
                 if results:
                     quote = bash.get_quote(results[0])
                 else:
                     quote = 'No results found'
-                await self.send_message(message.channel, f'```{quote}```')
+                await message.channel.send(f'```{quote}```')
             else:
                 try:
                     quote = bash.get_quote(int(args))
-                    await self.send_message(message.channel, f'```{quote}```')
+                    await message.channel.send(f'```{quote}```')
                 except ValueError:
                     results = bash.search(args)
                     if len(results) == 1:
                         quote = bash.get_quote(int(results[0]))
-                        await self.send_message(message.channel, f'```{quote}```')
+                        await message.channel.send(f'```{quote}```')
                     else:
-                        await self.send_message(message.channel, f'Search results:\n```{", ".join(results) or "No results found"}```')
+                        await message.channel.send(f'Search results:\n```{", ".join(results) or "No results found"}```')
         elif cmd == '!callsign':
             args = args.split()
             if len(args) != 1:
-                await self.send_message(message.channel, '```Usage: !callsign <callsign>```')
+                await message.channel.send('```Usage: !callsign <callsign>```')
                 return
             callsign = args[0]
             async with aiohttp.get(FCC_API.format(callsign)) as response:
@@ -115,41 +113,41 @@ class FactSphere(discord.Client):
                     del license['licDetailURL']
                     for key, value in license.items():
                         embed.add_field(name=key, value=value)
-                    await self.send_message(message.channel, embed=embed)
+                    await message.channel.send(embed=embed)
                 except KeyError:
-                    await self.send_message(message.channel, f'Could not find callsign "{callsign}"')
+                    await message.channel.send(f'Could not find callsign "{callsign}"')
         elif cmd == '!wa':
             async with aiohttp.get(WA_API, params={'appid': WA_APPID, 'input': args}) as response:
                 answer = await response.text()
-                await self.send_message(message.channel, f'```{answer}```')
+                await message.channel.send(f'```{answer}```')
         elif cmd == '!xkcd':
             if args == 'update':
                 with open('xkcd.json') as f:
                     self.comics = json.load(f)
             elif args in self.comics.keys():
-                await self.send_message(message.channel, f'https://xkcd.com/{args}/')
+                await message.channel.send(f'https://xkcd.com/{args}/')
             else:
                 results = []
-                await self.send_typing(message.channel)
-                for comic in self.comics.values():
-                    if args.lower() == comic['title'].lower():
-                        await self.send_message(message.channel, f'https://xkcd.com/{comic["num"]}/')
-                        return
-                    for word in args.lower().split():
-                        if word not in ' '.join([str(v) for v in comic.values()]).lower():
-                            break
+                async with message.channel.typing():
+                    for comic in self.comics.values():
+                        if args.lower() == comic['title'].lower():
+                            await message.channel.send(f'https://xkcd.com/{comic["num"]}/')
+                            return
+                        for word in args.lower().split():
+                            if word not in ' '.join([str(v) for v in comic.values()]).lower():
+                                break
+                        else:
+                            results.append(comic)
+                            if len(results) == 10:
+                                break
+                    if len(results) == 1:
+                        await message.channel.send(f'https://xkcd.com/{results[0]["num"]}/')
                     else:
-                        results.append(comic)
-                        if len(results) == 10:
-                            break
-                if len(results) == 1:
-                    await self.send_message(message.channel, f'https://xkcd.com/{results[0]["num"]}/')
-                else:
-                    await self.send_message(message.channel, f'''```Results:\n\n{chr(10).join(f'{comic["num"]}: {comic["title"]}' for comic in results)}```''')
+                        await message.channel.send(f'''```Results:\n\n{chr(10).join(f'{comic["num"]}: {comic["title"]}' for comic in results)}```''')
         elif cmd == '!fact':
             if args:
                 if args == 'list':
-                    await self.send_message(message.channel, 'A list of all facts can be found here: https://theportalwiki.com/wiki/List_of_Fact_Sphere_facts')
+                    await message.channel.send('A list of all facts can be found here: https://theportalwiki.com/wiki/List_of_Fact_Sphere_facts')
                     return
                 elif args == 'markov':
                     msg = ''
@@ -157,7 +155,7 @@ class FactSphere(discord.Client):
                     while word != '<end>':
                         msg += word + ' '
                         word = random.choice(self.chain[word])
-                    await self.send_message(message.channel, msg.strip())
+                    await message.channel.send(msg.strip())
                     return
                 else:
                     found = False
@@ -171,7 +169,7 @@ class FactSphere(discord.Client):
                 fact = random.choice(list(self.facts))
             if self.facts[fact] is not None:
                 await self.play_file(self.facts[fact])
-            await self.send_message(message.channel, fact)
+            await message.channel.send(fact)
 
 sphere = FactSphere()
 sphere.run(TOKEN)
