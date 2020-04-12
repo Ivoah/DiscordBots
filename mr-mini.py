@@ -6,7 +6,6 @@ import peewee
 import asyncio
 import discord
 import datetime
-import functools
 import youtube_dl
 import collections
 from concurrent.futures import CancelledError
@@ -80,27 +79,29 @@ class MrMini(discord.Client):
     async def on_ready(self):
         self.start_time = datetime.datetime.now()
         self.queue = Playlist('queue.pickle')
-        self.player = None
+        self.voice = None
+        self.playing = False
         self.repeat = False
         self.skip_cooldown = datetime.datetime.now()
 
         print(discord.utils.oauth_url(self.user.id))
-        self.roles = {r.name: r for r in list(self.servers)[0].roles}
-        self.channels = {c.name: c for c in list(self.servers)[0].channels}
+        self.roles = {r.name: r for r in list(self.guilds)[0].roles}
+        self.channels = {c.name: c for c in list(self.guilds)[0].channels}
         print(f'Logged in as {self.user.name}: {self.user.id}')
 
         if self.queue:
             await self.play_song(self.channels['hades'])
 
-    async def play_song(self, channel):
-        if self.is_voice_connected(channel.server):
-            voice = self.voice_client_in(channel.server)
-        else:
-            voice = await self.join_voice_channel(self.channels['music room'])
+    async def play_song(self, channel, error=None):
+        if error:
+            print(f'Error: {error}')
+            return
+        if self.voice is None or not self.voice.is_connected():
+            self.voice = await self.channels['music room'].connect()
 
         self.skip_cooldown = datetime.datetime.now()
 
-        if self.player:
+        if self.playing:
             if self.repeat:
                 self.queue.rotate()
             else:
@@ -108,101 +109,101 @@ class MrMini(discord.Client):
 
         if self.queue:
             song = self.queue.peek()
-            self.player = voice.create_ffmpeg_player(song['url'], after=functools.partial(asyncio.run_coroutine_threadsafe, self.play_song(channel), self.loop))
-            await self.send_message(channel, f'Playing "{song["title"]}" ({ftime(song["duration"])})')
-            await self.change_presence(game=discord.Game(name=song['title'], url=song['url']))
+            self.voice.play(discord.FFmpegPCMAudio(song['url']), after=lambda err: asyncio.run_coroutine_threadsafe(self.play_song(channel, err), self.loop))
+            self.playing = True
+            await channel.send(f'Playing "{song["title"]}" ({ftime(song["duration"])})')
+            await self.change_presence(activity=discord.Activity(name=song['title'], url=song['url'], type=discord.ActivityType.listening))
             with db:
                 Entry.create(song=json.dumps(song), date=datetime.datetime.now())
-            self.player.start()
         else:
-            self.player = None
+            self.playing = False
             await self.change_presence()
-            await voice.disconnect()
+            await self.voice.disconnect()
 
     async def on_message(self, message):
         print(f'#{message.channel.name}: {message.content}')
         if message.channel.name == 'acropolis':
             if message.content.startswith('Suggestion: ') and not message.author.bot:
-                await self.pin_message(message)
+                await message.pin()
             elif message.type == discord.MessageType.pins_add:
-                await self.delete_message(message)
+                await message.delete()
         if message.author.bot or self.roles['Timeout of Shame'] in message.author.roles or not message.content: return
         cmd = message.content.split()[0]
         args = message.content[len(cmd) + 1:]
         if cmd == '!yt':
             if not args:
-                await self.send_message(message.channel, '```Usage: !yt <url|search term>```')
+                await message.channel.send('```Usage: !yt <url|search term>```')
                 return
             with youtube_dl.YoutubeDL({'default_search': 'ytsearch', 'format': 'webm[abr>0]/bestaudio/best'}) as ytdl:
                 song = ytdl.extract_info(args, download=False)
                 if 'entries' in song:
                     song = song['entries'][0]
                 self.queue.add(song)
-                await self.send_message(message.channel, f'Added "{song["title"]}" to the queue ({ftime(song["duration"])})')
-            if self.player is None:
+                await message.channel.send(f'Added "{song["title"]}" to the queue ({ftime(song["duration"])})')
+            if not self.playing:
                 await self.play_song(self.channels['hades'])
         elif cmd == '!stop':
             if args:
-                await self.send_message(message.channel, '```Usage: !stop```')
+                await message.channel.send('```Usage: !stop```')
                 return
-            if self.player:
+            if self.playing:
                 self.queue.clear(1, -1)
-                self.player.stop()
+                self.voice.stop()
             else:
-                await self.send_message(message.channel, 'Nothing is playing')
+                await message.channel.send('Nothing is playing')
         elif cmd == '!pause':
             if args:
-                await self.send_message(message.channel, '```Usage: !pause```')
+                await message.channel.send('```Usage: !pause```')
                 return
-            if self.player:
-                self.player.pause()
+            if self.playing:
+                self.voice.pause()
             else:
-                await self.send_message(message.channel, 'Nothing is playing')
+                await message.channel.send('Nothing is playing')
         elif cmd == '!resume':
             if args:
-                await self.send_message(message.channel, '```Usage: !resume```')
+                await message.channel.send('```Usage: !resume```')
                 return
-            if self.player:
-                self.player.resume()
+            if self.playing:
+                self.voice.resume()
             else:
-                await self.send_message(message.channel, 'Nothing is playing')
+                await message.channel.send('Nothing is playing')
         elif cmd == '!skip':
             if args:
-                await self.send_message(message.channel, '```Usage: !skip```')
+                await message.channel.send('```Usage: !skip```')
                 return
-            if self.player:
+            if self.playing:
                 if (datetime.datetime.now() - self.skip_cooldown).seconds >= 5:
-                    self.player.stop()
+                    self.voice.stop()
                     self.skip_cooldown = datetime.datetime.now()
             else:
-                await self.send_message(message.channel, 'Nothing is playing')
+                await message.channel.send('Nothing is playing')
         elif cmd == '!queue':
             args = args.split()
             if args and args[0] == 'clear':
                 if len(args) == 1:
-                    if self.player:
+                    if self.playing:
                         self.queue.clear(1, -1)
                     else:
                         self.queue.clear()
-                    await self.send_message(message.channel, 'Queue cleared')
+                    await message.channel.send('Queue cleared')
                 elif len(args) == 2:
                     try:
                         n = int(args[1])
                         if 1 < n <= len(self.queue):
                             self.queue.clear(n - 1)
                         else:
-                            await self.send_message(message.channel, 'Can\'t delete that item')
+                            await message.channel.send('Can\'t delete that item')
                     except ValueError:
-                        await self.send_message(message.channel, '```Usage: !queue [clear [n]]```')
+                        await message.channel.send('```Usage: !queue [clear [n]]```')
                 else:
-                    await self.send_message(message.channel, '```Usage: !queue [clear [n]]```')
+                    await message.channel.send('```Usage: !queue [clear [n]]```')
             elif not args:
                 if self.queue:
-                    await self.send_message(message.channel, '\n'.join(f'{i + 1}: {s["title"]} ({ftime(s["duration"])})' for i, s in enumerate(self.queue)) + f'\n\n{ftime(sum(s["duration"] for s in self.queue))} total')
+                    await message.channel.send('\n'.join(f'{i + 1}: {s["title"]} ({ftime(s["duration"])})' for i, s in enumerate(self.queue)) + f'\n\n{ftime(sum(s["duration"] for s in self.queue))} total')
                 else:
-                    await self.send_message(message.channel, 'The queue is empty')
+                    await message.channel.send('The queue is empty')
             else:
-                await self.send_message(message.channel, '```Usage: !queue [clear [n]]```')
+                await message.channel.send('```Usage: !queue [clear [n]]```')
         elif cmd == '!repeat':
             if args.lower() in ['on', 'yes', 'true']:
                 self.repeat = True
@@ -211,29 +212,29 @@ class MrMini(discord.Client):
             elif args.lower() in ['toggle']:
                 self.repeat = not self.repeat
             elif not args:
-                await self.send_message(message.channel, f'Repeat is currently {"on" if self.repeat else "off"}')
+                await message.channel.send(f'Repeat is currently {"on" if self.repeat else "off"}')
                 return
             else:
-                await self.send_message(message.channel, '```Usage: !repeat [on|off|toggle]```')
+                await message.channel.send('```Usage: !repeat [on|off|toggle]```')
                 return
-            await self.send_message(message.channel, f'Repeat set to {self.repeat}')
+            await message.channel.send(f'Repeat set to {self.repeat}')
         elif cmd == '!timeout':
             for member in message.mentions:
-                await self.add_roles(member, self.roles['Kinda timeout but not really'])
+                await member.add_roles(self.roles['Kinda timeout but not really'])
         elif cmd == '!outtime':
-            if message.author.server_permissions.administrator:
+            if message.channel.permissions_for(message.author).administrator:
                 for member in message.mentions:
-                    await self.add_roles(member, self.roles['Timeout of Shame'])
+                    await member.add_roles(self.roles['Timeout of Shame'])
             else:
-                self.send_message(message.channel, 'Plebs can\'t use !outtime')
+                message.channel.send('Plebs can\'t use !outtime')
         elif cmd == '!reload':
             if args:
-                await self.send_message(message.channel, '```Usage: !reload```')
+                await message.channel.send('```Usage: !reload```')
                 return
             await self.on_load()
         elif cmd == '!uptime':
             if args:
-                await self.send_message(message.channel, '```Usage: !uptime```')
+                await message.channel.send('```Usage: !uptime```')
                 return
 
             bot_uptime = datetime.datetime.now() - self.start_time
@@ -244,27 +245,27 @@ class MrMini(discord.Client):
                 system_uptime = None
 
             if system_uptime:
-                await self.send_message(message.channel, f'```Bot: {bot_uptime}\nSystem: {system_uptime}```')
+                await message.channel.send(f'```Bot: {bot_uptime}\nSystem: {system_uptime}```')
             else:
-                await self.send_message(message.channel, f'```Bot: {bot_uptime}```')
+                await message.channel.send(f'```Bot: {bot_uptime}```')
         elif cmd == '!vidya':
             if args:
-                await self.send_message(message.channel, '```Usage: !vidya```')
+                await message.channel.send('```Usage: !vidya```')
                 return
             
             if self.roles['Vidya Gaems'] in message.author.roles:
-                await self.remove_roles(message.author, self.roles['Vidya Gaems'])
-                await self.send_message(message.channel, f'Removed {self.roles["Vidya Gaems"].mention} from {message.author.mention}')
+                await message.author.remove_roles(self.roles['Vidya Gaems'])
+                await message.channel.send(f'Removed {self.roles["Vidya Gaems"].mention} from {message.author.mention}')
             else:
-                await self.add_roles(message.author, self.roles['Vidya Gaems'])
-                await self.send_message(message.channel, f'Added {self.roles["Vidya Gaems"].mention} to {message.author.mention}')
+                await message.author.add_roles(self.roles['Vidya Gaems'])
+                await message.channel.send(f'Added {self.roles["Vidya Gaems"].mention} to {message.author.mention}')
 
     async def on_member_update(self, before, after):
         IVOAH = '150801519975989248'
         if after.id == self.user.id:
             for role in after.roles:
                 if 'aifu' in role.name.lower():
-                    await self.remove_roles(after, role)
+                    await after.remove_roles(role)
 
 mr_mini = MrMini()
 mr_mini.run(TOKEN)
