@@ -104,22 +104,24 @@ class FactSphere(discord.Client):
                 await message.channel.send('```Usage: !callsign <callsign>```')
                 return
             callsign = args[0]
-            async with aiohttp.get(FCC_API.format(callsign)) as response:
-                json = await response.json()
-                try:
-                    license = json['Licenses']['License'][0]
-                    embed = discord.Embed(title=license['licName'], url=license['licDetailURL'])
-                    del license['licName']
-                    del license['licDetailURL']
-                    for key, value in license.items():
-                        embed.add_field(name=key, value=value)
-                    await message.channel.send(embed=embed)
-                except KeyError:
-                    await message.channel.send(f'Could not find callsign "{callsign}"')
+            async with aiohttp.ClientSession() as session:
+                async with session.get(FCC_API.format(callsign)) as response:
+                    json = await response.json()
+                    try:
+                        license = json['Licenses']['License'][0]
+                        embed = discord.Embed(title=license['licName'], url=license['licDetailURL'])
+                        del license['licName']
+                        del license['licDetailURL']
+                        for key, value in license.items():
+                            embed.add_field(name=key, value=value)
+                        await message.channel.send(embed=embed)
+                    except KeyError:
+                        await message.channel.send(f'Could not find callsign "{callsign}"')
         elif cmd == '!wa':
-            async with aiohttp.get(WA_API, params={'appid': WA_APPID, 'input': args}) as response:
-                answer = await response.text()
-                await message.channel.send(f'```{answer}```')
+            async with aiohttp.ClientSession() as session:
+                async with session.get(WA_API, params={'appid': WA_APPID, 'input': args}) as response:
+                    answer = await response.text()
+                    await message.channel.send(f'```{answer}```')
         elif cmd == '!xkcd':
             if args == 'update':
                 with open('xkcd.json') as f:
