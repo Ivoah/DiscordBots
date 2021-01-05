@@ -1,4 +1,5 @@
-#!/usr/bin/env python3.6
+#!/bin/sh
+"exec" "`dirname $0`/venv/bin/python" "$0" "$@"
 
 import re
 import json
@@ -33,16 +34,16 @@ class Reegee(discord.Client):
                 elif flag == 'g':
                     count = 0
                 else:
-                    await message.channel.send(f'Unrecognized flag: {flag}')
+                    await message.reply(f'Unrecognized flag: {flag}')
                     return
 
             async for msg in message.channel.history(limit=25):
                 try:
                     if msg.content != message.content and re.search(_from, msg.content):
-                        await message.channel.send(re.sub(_from, to, msg.content, count=count, flags=re_flags))
+                        await msg.reply(re.sub(_from, to, msg.content, count=count, flags=re_flags))
                         return
                 except Exception as e:
-                    await message.channel.send(f'u dun goofed m8: {e}')
+                    await message.reply(f'u dun goofed m8: {e}')
                     return
 
 reegee = Reegee()

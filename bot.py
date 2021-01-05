@@ -1,4 +1,5 @@
-#!/usr/bin/env python3.6
+#!/bin/sh
+"exec" "`dirname $0`/venv/bin/python" "$0" "$@"
 
 import re
 import json

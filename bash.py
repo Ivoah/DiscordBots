@@ -1,3 +1,6 @@
+#!/bin/sh
+"exec" "`dirname $0`/venv/bin/python" "$0" "$@"
+
 import bs4
 import requests
 
