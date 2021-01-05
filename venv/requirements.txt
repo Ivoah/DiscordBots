@@ -5,7 +5,7 @@ attrs==20.3.0
 beautifulsoup4==4.9.3
 certifi==2020.12.5
 chardet==3.0.4
-discord.py==1.6.0a2721+gbe18296
+git+https://github.com/Rapptz/discord.py@be1829615ce5b340dce3f49ef4c12d7b74dcba8c
 idna==2.10
 multidict==5.1.0
 noise==1.2.2
@@ -19,3 +19,5 @@ urllib3==1.26.2
 wcwidth==0.2.5
 yarl==1.6.3
 youtube-dl==2021.1.3
+Pillow==8.1.0
+PyMySQL==0.10.1
