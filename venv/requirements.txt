@@ -15,7 +15,7 @@ pyte==0.8.0
 requests==2.25.1
 soupsieve==2.1
 typing-extensions==3.7.4.3
-urllib3==1.26.2
+urllib3==1.26.4
 wcwidth==0.2.5
 yarl==1.6.3
 youtube-dl==2021.1.3
